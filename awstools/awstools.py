@@ -134,15 +134,18 @@ def ip(name):
 
 @main.command()
 @click.argument('name', type=str)
-def attach(name):
+@click.argument('keyfile', type=str, required=False)
+def attach(name, keyfile=None):
     """Drop into a shell connection to a named instance via SSH."""
     instances = instances_by_name(name)
     ips = [instance.public_ip_address for instance in instances]
     if len(ips) == 1:
         ip = ips[0]
         print("Logging into {:s}".format(ip))
-        subprocess.call('ssh -oStrictHostKeyChecking=no ' + "ubuntu@{:s}".format(ip),
-                        shell=True)
+        cmd = "ssh -oStrictHostKeyChecking=no " + "ubuntu@{:s}".format(ip)
+        if keyfile is not None:
+            cmd += " -i {:s}".format(keyfile)
+        subprocess.call(cmd, shell=True)
     else:
         raise ValueError("There were {:d} instances by that name".format(len(ips)))
 
